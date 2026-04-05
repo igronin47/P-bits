@@ -1,0 +1,111 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from random import random
+
+# -----------------------------
+# PCircuit Definition
+# -----------------------------
+class PCircuit:
+    def __init__(self, n):
+        self.n_pbits = n
+        self.J = np.zeros((n, n))
+        self.h = np.zeros(n)
+
+# -----------------------------
+# Solver (with clamping)
+# -----------------------------
+class PSolver:
+    def __init__(self, Nt=1000, i0=0.3, dt=0.1667):
+        self.Nt = Nt
+        self.i0 = i0
+        self.dt = dt
+
+    def solve(self, c, m_init=None, clamped=None):
+        n = c.n_pbits
+        all_m = np.zeros((self.Nt, n))
+
+        if m_init is None:
+            m = np.sign(np.random.rand(n) - 0.5)
+        else:
+            m = np.array(m_init)
+
+        if clamped is None:
+            clamped = [False]*n
+
+        for t in range(self.Nt):
+
+            I = self.i0 * (np.dot(c.J, m) + c.h)
+            s = np.exp(-self.dt * np.exp(-m * I))
+
+            for i in range(n):
+                if not clamped[i]:
+                    m[i] = m[i] * np.sign(s[i] - random())
+
+            all_m[t] = m
+
+        return all_m
+
+# -----------------------------
+# XOR Training (Hebbian)
+# -----------------------------
+def train_xor():
+    # XOR dataset (bipolar)
+    data = np.array([
+        [-1, -1, -1, -1],  # x1, x2, h, y
+        [-1, +1, +1, +1],
+        [+1, -1, +1, +1],
+        [+1, +1, -1, -1]
+    ])
+
+    n = 4
+    J = np.zeros((n, n))
+
+    for sample in data:
+        for i in range(n):
+            for j in range(n):
+                if i != j:
+                    J[i][j] += sample[i]*sample[j]
+
+    J = J / len(data)
+    h = np.zeros(n)
+
+    return J, h
+
+# -----------------------------
+# Build Circuit
+# -----------------------------
+c = PCircuit(4)
+J, h = train_xor()
+c.J = J
+c.h = h
+
+solver = PSolver()
+#
+# # =============================
+# # 🟢 FORWARD MODE
+# # =============================
+print("\n--- Forward Mode (x1=1, x2=-1) ---")
+
+m_init = [1, -1, 1, 2]
+clamped = [True, True, False, False]
+
+M_fwd = solver.solve(c, m_init, clamped)
+
+y_vals = M_fwd[:,3]
+print("P(y=1):", np.mean(y_vals == 1))
+
+# # =============================
+# # 🔵 INVERTIBLE MODE
+# # =============================
+print("\n--- Invertible Mode (y=1) ---")
+
+m_init = [1, 1, 1, 1]
+clamped = [False, False, False, True]
+
+M_inv = solver.solve(c, m_init, clamped)
+
+x1_vals = M_inv[:,0]
+x2_vals = M_inv[:,1]
+
+print("Mean x1:", np.mean(x1_vals))
+print("Mean x2:", np.mean(x2_vals))
