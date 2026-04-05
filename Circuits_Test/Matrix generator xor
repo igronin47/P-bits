@@ -1,0 +1,58 @@
+import sympy as sp
+import numpy as np
+x1,x2,y =sp.symbols('x1 x2 y') #Inputs-Outputs
+variables = [x1, x2, y]
+# Cost function 
+cost = sp.expand((y - (x1 - x2)**2)**2)  
+# Initialize parameters
+n = len(variables)  
+J = np.zeros((n, n))
+h = np.zeros(n)
+# Fill J and h using negative coefficients
+for term in cost.as_ordered_terms():
+    coeff = -term.as_coeff_Mul()[0]
+    symbols = list(term.as_coeff_Mul()[1].free_symbols)
+    if len(symbols) == 1:  # h matrix
+        i = variables.index(symbols[0])
+        h[i] += coeff
+    elif len(symbols) == 2:  # J matrix
+        i, j = variables.index(symbols[0]), variables.index(symbols[1])
+        if i != j:
+            J[i][j] += coeff
+            J[j][i] += coeff  # symmetry
+
+
+% def construct_function_matrix(f_i, x_i, y_i):
+%   if f_i == "ReLU":
+%      return construct_relu_matrix(x_i, y_i)
+% ...
+%   elif f_i == "Bitcount":
+%      return construct_bitcount_matrix(x_i, y_i)
+%   else:
+%      raise ValueError("Unknown function:{}".format(f_i)) # Add more as needed
+
+# Input: functions f_i, input x_i, output y_i
+# Output: Weight matrix J and bias vector h
+total_bits = 0
+index_offset = []
+
+for x_i, y_i in zip(inputs, outputs):
+    count = len(x_i) + len(y_i)
+    index_offset.append(total_bits)
+    total_bits += count
+
+J = np.zeros((total_bits, total_bits))
+h = np.zeros(total_bits)
+
+for i, (f_i, x_i, y_i) in enumerate(zip(functions, inputs, outputs)):
+    J_i, h_i = construct_function_matrix(f_i, x_i, y_i)
+    offset = index_offset[i]
+    size = J_i.shape[0]    
+for u in range(size):
+    g_u = offset + u
+    h[g_u] += h_i[u]
+for v in range(size):
+    g_v = offset + v
+    J[g_u, g_v] += J_i[u, v]
+return J, h
+
