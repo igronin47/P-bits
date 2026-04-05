@@ -1,0 +1,59 @@
+from p_kit.core import PCircuit
+from p_kit.solver.csd_solver import CaSuDaSolver
+from p_kit.visualization import histplot
+import numpy as np
+
+
+# ================= P-CIRCUIT DEFINITION =================
+c = PCircuit(4)
+
+# J matrix for 2:1 MUX → [x, I0, I1, y]
+c.J = np.array([
+    [0,  1, -1, -2],   # x
+    [1,  0,  0,  2],   # I0
+    [-1, 0,  0,  2],   # I1
+    [-2, 2,  2,  0]    # y
+])
+
+# h vector (all zeros)
+c.h = np.zeros(4)
+
+
+
+# for 8:1 Multiplexer
+c.J = np.array([
+    [ 0,  0,  0,  1, -1,  1, -1,  1, -1,  1, -1, -2],  # x0
+    [ 0,  0,  0,  1,  1, -1, -1,  1,  1, -1, -1,  2],  # x1
+    [ 0,  0,  0,  1,  1,  1,  1, -1, -1, -1, -1,  2],  # x2
+    [ 1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  2],  # I0
+    [-1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  2],  # I1
+    [ 1, -1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  2],  # I2
+    [-1, -1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  2],  # I3
+    [ 1,  1, -1,  0,  0,  0,  0,  0,  0,  0,  0,  2],  # I4
+    [-1,  1, -1,  0,  0,  0,  0,  0,  0,  0,  0,  2],  # I5
+    [ 1, -1, -1,  0,  0,  0,  0,  0,  0,  0,  0,  2],  # I6
+    [-1, -1, -1,  0,  0,  0,  0,  0,  0,  0,  0,  2],  # I7
+    [-2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  0]   # y
+])
+
+# h vector (all zeros)
+c.h = np.zeros(12)
+
+
+
+
+
+# ================= SOLVER CONFIGURATION =================
+solver = CaSuDaSolver(
+    Nt=25000,   # number of iterations
+    dt=0.1667,  # time step
+    i0=0.9      # inverse temperature (beta)
+)
+
+
+# ================= RUN SIMULATION =================
+input_states, output_states = solver.solve(c)
+
+
+# ================= VISUALIZATION =================
+histplot(output_states)
