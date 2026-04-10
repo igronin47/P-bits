@@ -44,7 +44,7 @@ c.h = np.zeros(5)
 solver = CaSuDaSolver(
     Nt=25000,   # number of iterations
     dt=0.1667,  # time step
-    i0=0.9      # inverse temperature (beta)
+    i0=0.5      # inverse temperature (beta)
 )
 
 
