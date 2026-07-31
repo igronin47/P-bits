@@ -1,3 +1,6 @@
+ **GPU_CPU_Framework:**
+ The framework supports Numpy, CuPy and CUDA with parallel solver. For enabling this, please using GPU_CPU_Framework branch, this is not pushed in main branch.
+ 
  **P-bit Simulator:**
 This framework is built using Python to simulate p-circuits for probabilistic computing. A p-bit fluctuates between 0 and 1, functioning based on the probability of outcomes.
 
